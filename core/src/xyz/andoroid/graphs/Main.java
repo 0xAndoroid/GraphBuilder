@@ -3,14 +3,19 @@ package xyz.andoroid.graphs;
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
+import com.badlogic.gdx.graphics.Camera;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
 import xyz.andoroid.graphs.model.Edge;
 import xyz.andoroid.graphs.model.EdgeBuilder;
 import xyz.andoroid.graphs.model.Vertex;
@@ -36,14 +41,21 @@ public class Main extends ApplicationAdapter {
 	private ImageTextButton edgesButton;
 	private TextButton exportButton;
 
+	private Camera camera;
+	private Viewport viewport;
+
 	private SelectBox<String> selectBox;
 
 	private int selectedCircle = -1;
 	
 	@Override
 	public void create () {
+		viewport = new FitViewport(1920, 1080);
+		camera = new OrthographicCamera(1920, 1080);
 		batch = new SpriteBatch();
+		batch.setProjectionMatrix(camera.combined);
 		stage = new Stage();
+		stage.setViewport(viewport);
 		shapeRenderer = new ShapeRenderer();
 		edgeBuilder = new EdgeBuilder();
 		vertexBuilder = new VertexBuilder(edgeBuilder);
@@ -147,15 +159,28 @@ public class Main extends ApplicationAdapter {
 			shapeRenderer.circle(vertex.circle.x, vertex.circle.y, vertex.circle.radius);
 		}
 		shapeRenderer.setColor(Color.WHITE);
-		for(Edge edge : edgeBuilder.edges) shapeRenderer.rectLine(
-				vertexBuilder.getVertex(edge.v1).circle.x,
-				vertexBuilder.getVertex(edge.v1).circle.y,
-				vertexBuilder.getVertex(edge.v2).circle.x,
-				vertexBuilder.getVertex(edge.v2).circle.y, 3);
+		for(Edge edge : edgeBuilder.edges) {
+			shapeRenderer.rectLine(
+					vertexBuilder.getVertex(edge.v1).circle.x,
+					vertexBuilder.getVertex(edge.v1).circle.y,
+					vertexBuilder.getVertex(edge.v2).circle.x,
+					vertexBuilder.getVertex(edge.v2).circle.y, 3);
+			Vector2 transposeVector = new Vector2(vertexBuilder.getVertex(edge.v1).circle.x-vertexBuilder.getVertex(edge.v2).circle.x,
+					vertexBuilder.getVertex(edge.v1).circle.y-vertexBuilder.getVertex(edge.v2).circle.y);
+			transposeVector.x/=8;
+			transposeVector.y/=8;
+			float px = transposeVector.x+vertexBuilder.getVertex(edge.v2).circle.x;
+			float py = transposeVector.y+vertexBuilder.getVertex(edge.v2).circle.y;
+			shapeRenderer.setColor(Color.ORANGE);
+			shapeRenderer.rectLine(px,py,vertexBuilder.getVertex(edge.v2).circle.x,
+					vertexBuilder.getVertex(edge.v2).circle.y,10);
+			shapeRenderer.setColor(Color.WHITE);
+		}
 		shapeRenderer.end();
 	}
 
 	private void update() {
+		camera.update();
 		if(Gdx.input.isKeyPressed(Input.Keys.ESCAPE)) Gdx.app.exit();
 
 		if(Gdx.input.isKeyJustPressed(Input.Keys.V)) verticesButton.setChecked(true);

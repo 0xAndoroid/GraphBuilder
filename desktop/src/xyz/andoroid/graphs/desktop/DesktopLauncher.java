@@ -10,10 +10,12 @@ import java.awt.*;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		LwjglApplicationConfiguration config = new LwjglApplicationConfiguration();
-		config.width = (int)(Toolkit.getDefaultToolkit().getScreenSize().width*0.85);
-		config.height = (int)(Toolkit.getDefaultToolkit().getScreenSize().height*0.85);
+		double multiplier = 0.85*Toolkit.getDefaultToolkit().getScreenResolution()/120;
+		config.width = (int)(Toolkit.getDefaultToolkit().getScreenSize().width*multiplier);
+		config.height = (int)(Toolkit.getDefaultToolkit().getScreenSize().height*multiplier);
 		config.x = 0;
 		config.y = 0;
+		config.resizable = false;
 		new LwjglApplication(new Main(), config);
 	}
 }
